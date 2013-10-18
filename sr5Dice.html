@@ -1,0 +1,699 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>SR5 Mobile Dice Roller V2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <!-- Bootstrap -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+    
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css">
+    
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  	<script>
+
+//Copyright 2013 Michael Zebrowski
+//http://www.prosperity-station.com
+//
+//Permission is hereby granted, free of charge, to any person obtaining
+//a copy of this software and associated documentation files (the
+//"Software"), to deal in the Software without restriction, including
+//without limitation the rights to use, copy, modify, merge, publish,
+//distribute, sublicense, and/or sell copies of the Software, and to
+//permit persons to whom the Software is furnished to do so, subject to
+//the following conditions:
+//
+//The above copyright notice and this permission notice shall be
+//included in all copies or substantial portions of the Software.
+//
+//THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+//MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+//NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+//LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+//OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+//WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.		
+
+       var ones = 0
+    	 var hits = 0
+	    var failures = 0
+	    var total=0
+	    var rolled = false
+	    var gremlins = false
+	    var colorArray = ["black","orange"]
+	    var dieRolls 
+	    
+	    function savedRoll()
+	    {
+	    	 this.dice = 0
+	    	 this.limit = 0
+	    	 this.gremlin = 0
+	    	 this.threshold = 0
+	    }
+      // Rolls a single die
+      // Inputs:
+      //    ace : when true, reroll 6's
+      //    acing : when true, do not count failures or ones
+      // Outputs:
+      //     ones (global) : increases the one's count when a one in rolled.
+      //     failures (global) : increase the failure count when a failure is rolled.
+      //     hits (global) : increase the number of hits when a success is rolled
+      //     total (global) : increase the dice total by the amount rolled.
+	    function rollDie(ace,acing)
+	    {
+	    	  var r = Math.ceil(Math.random() * 6)
+	    	  total += r
+	    	  dieRolls[r]++;
+	    	  if (ace && (r == 6))
+	    	  {
+	    	  	hits++
+	    	  	dieRolls[0]++;
+	    	  	rollDie(true, true)
+	    	  }
+	    	  else if (r>4)
+	    	 {
+	    	      hits++
+	    	 }
+	    	 else if ((r == 1) && (!acing))
+	    	 {
+	    	     ones++
+	    	 } 	
+  	    	 if ((r < 5) && !acing)
+	    	 {
+	    	   failures++
+	    	 } 	
+	    }	
+	    function rollPool()
+	    {
+         btnPushed()
+	    	var i
+         var ace = $("#ace").hasClass("active")
+	    	var pool = $("#dicePool").attr("value");
+  	      var wammies = gremlins ? $("#gremlinPool").attr("value") : 0;
+		    ones = 0
+		    hits = 0
+		    failures = 0
+		    total = 0
+		    for (i=0; i <= 6 ; i++)
+		    {
+		    	 dieRolls[i] = 0;
+		    }
+		    for (i=0; i < pool; i++)
+	    	{
+ 		       rollDie(ace,false);
+	    	} 
+	    	  // show Hits
+	    	  $(".diceHits").html(hits)
+	    	  $(".diceTotal").html(total)
+          $(".diceTotal").show()
+          $(".diceTotalLabel").hide()
+
+	    	  // show Glitch/Crit Glitch
+          $(".diceGlitch").hide()
+          $(".diceCriticalGlitch").hide()
+          $(".diceNormal").hide()
+	    	  if (( ones > 0) && ((Number(ones) + Number(wammies)) *2 > pool))
+	    	  {
+	    	     if (hits > 0)
+	    	     {
+	    	  	     $(".diceGlitch").show()
+	    	     }
+	    	     else
+	    	     {
+			           $(".diceCriticalGlitch").show()   
+	    	     }	    	  	
+	    	  }
+	    	  else
+	    	  {
+	    	     $(".diceNormal").show()
+	    	  }
+	    	  rotateHint()
+	    	  rolled = true
+	    }
+	    function reRollFailures()
+	    {
+          btnPushed()
+  	    	var i
+  	    	var j = failures
+  	    	dieRolls[0] += failures;
+		      failures = 0;
+		      for (i=1; i <= 4 ; i++)
+		      {
+		    	  dieRolls[i] = 0;
+		      }
+		    
+	    	  for (i=0; i < j; i++)
+	    	  {
+	    	  	rollDie(false,false)
+	    	  } 
+	    	  // show Hits	    	  
+	    	  $(".diceHits").html(hits)
+	    	  rotateHint()
+	    }
+	    var hintIndex = 0;
+	   function rotateHint()
+	   {
+	   	  $(".diceHits").css("color",colorArray[hintIndex])
+	   	  hintIndex++
+	   	  hintIndex %= colorArray.length;
+	   	  $(".diceTotal").css("color",colorArray[hintIndex])
+        
+	   }
+     function resetAll()
+     {
+        btnPushed()
+     	  $(".diceHits").html(0)
+	     $(".diceTotal").html(0)
+	     $(".diceGlitch").hide()
+  	     $(".diceCriticalGlitch").hide()   
+  	     $(".diceNormal").show()        
+  	     $("#ace").removeClass("active") 
+	     $("#dicePool").html(0)
+     	  $("#dicePool").attr("value",0)
+        $(".diceHits").css("color","black")      
+        $(".diceTotal").hide()
+        $(".diceTotalLabel").show()
+        $("#diceLabel").show()
+        $("#dicePool").hide()
+        resetGremlins()
+     }
+     function btnPushed()
+     {
+        
+        if ( "vibrate" in navigator )
+        {
+           navigator.vibrate(10);
+        }
+     }
+     function resetGremlins()
+     {
+        $("#gremlinLabel").hide()        
+        $("#gremlinPool").hide()
+	      $("#gremlinPool").html(0)
+     	  $("#gremlinPool").attr("value",0)
+        gremlins = false
+     }
+     function pushBtn(val)
+     {
+        btnPushed()
+        if (rolled)
+        {
+        	resetGremlins()
+        }
+        $("#diceLabel").hide()
+        $("#dicePool").show()
+     	  var c = gremlins ? $("#gremlinPool").attr("value") : $("#dicePool").attr("value");
+     	  c= rolled ? val :  c = c*10 + val
+     	  rolled = false
+     	  c = c > 999 ? 999 : c
+     	  if (gremlins)
+     	  {
+     	  	$("#gremlinPool").html(c)
+     	  	$("#gremlinPool").attr("value",c)
+     	  }
+     	  else
+     	  {
+     	  	$("#dicePool").html(c)
+     	  	$("#dicePool").attr("value",c)
+     	  }     	  
+     }	
+     
+     function gremlinsBtn()
+     {
+           btnPushed()
+     	   rolled = false
+     	   if ((!gremlins) && ($("#dicePool").attr("value") > 0)) 
+     	   {
+     	  	$("#gremlinPool").html(0)
+     	  	$("#gremlinPool").attr("value",0)
+          $("#gremlinLabel").show()        
+          $("#gremlinPool").show()
+     	   	gremlins = true  
+     	   }
+     }   
+     function backUp()
+     {
+        btnPushed()
+        if (gremlins)
+        {
+     	     var c = $("#gremlinPool").attr("value");
+     	     if (c > 0)     	     
+     	     {
+     	       c = Math.floor(c/10)
+     	       $("#gremlinPool").html(c)
+     	       $("#gremlinPool").attr("value",c)
+     	     }
+     	     else
+     	     {
+              resetGremlins()	
+     	     }
+        }
+        else
+        {
+     	     var c = $("#dicePool").attr("value");
+     	     c = Math.floor(c/10)
+     	     $("#dicePool").html(c)
+     	     $("#dicePool").attr("value",c)
+     	     if (c == 0)     	     
+     	     {
+     	        $("#diceLabel").show()
+              $("#dicePool").hide()
+     	     }
+
+     	  }
+     	   
+     }
+function keyEvent(event) 
+{
+    var code = event.keyCode;
+    if ((code >= 48) && ( code <= 57))
+    {
+        pushBtn(code-48)
+    }
+    else if (code == 13)
+    {
+      rollPool()
+    }
+    else if (code == 42)
+    {
+      reRollFailures()
+    }
+    else if (code == 43)
+    {
+      $("#ace").prop("checked",true).checkboxradio( "refresh", true );
+    }
+    else if (code == 45)
+    {
+      if ($("#ace").hasClass("active"))
+      {
+         $("#ace").removeClass("active")
+      }
+      else
+      {
+         $("#ace").addClass("active")
+      }
+    }
+}
+function specialKeyEvent(event) 
+{
+    var code = event.keyCode;
+    switch (code)
+    {
+      case(8):
+      case(46):
+        backUp()
+      break;
+      case (27):
+        resetAll()
+      break;
+      case (71):
+        gremlinsBtn()
+      break;
+    }
+}
+
+function showResults()
+{
+	$("#rr").html(dieRolls[0])
+	$("#r1").html(dieRolls[1])
+	$("#r2").html(dieRolls[2])
+	$("#r3").html(dieRolls[3])
+	$("#r4").html(dieRolls[4])
+	$("#r5").html(dieRolls[5])
+	$("#r6").html(dieRolls[6])
+	$('#breakdownModal').modal('show')      	  
+}
+
+var currentPage
+function changePage(page)
+{
+   currentPage.hide();
+   currentPage = page;
+   currentPage.show();
+}
+function changeOrientation(direction)
+{
+   
+}
+
+function saveData()
+{
+  if(typeof(Storage)!=="undefined")
+  {
+      var a = new Array()
+      var d
+      var s
+      for (var i=1; i<=16; i++)
+      {
+          d = $("#p"+i.toString()).data()
+          if ((d.dice) > 0)
+          {            
+            a.push(d.dice.toString() + ":" + d.glitch.toString() + ":" + d.edge.toString())
+          }
+          else
+          {
+             a.push("0:0:false")
+          }  
+      }
+      localStorage.srRoller = a.join(",")
+  }   
+}   
+
+function loadData()
+{
+  if(typeof(Storage)!=="undefined")
+  {
+      var a = String(localStorage.srRoller).split(",")
+      var b
+      var c
+      var d
+      for (var i=0; i < a.length; i++)
+      {
+          c = i+1
+          b = a[i].split(":")          
+          d = $("#p"+c.toString())
+          d.data({dice:Number(b[0]),glitch:Number(b[1]),edge:b[2]})
+          formatPreset(d)
+      }
+  }   
+}   
+
+var itemPressed = null;
+var timerRunning = false
+function formatPreset(item)
+{
+     var d = item.data()
+     var s 
+     if (Number(d.dice) > 0)
+      {
+          
+          s = d.dice.toString()
+          if (Number(d.glitch) > 0)
+          {
+             s += " G " + d.glitch
+          }
+          if (d.edge == "true")
+          {
+             s = "*" + s  
+          }
+      }
+      else
+      {
+         s = "Preset " + item.attr("id").replace("p","")   
+      }
+      item.html(s)
+}
+function ding()
+{
+   if (itemPressed != null)
+   {
+      var ace = $("#ace").hasClass("active") ? "true" : "false"
+	 	var pool = $("#dicePool").attr("value");
+      var wammies = gremlins ? $("#gremlinPool").attr("value") : 0;
+      itemPressed.data({dice:pool,glitch:wammies,edge:ace})      
+      formatPreset(itemPressed)
+      saveData()
+   }
+   timerRunning = false
+}
+
+function pressAndHold(item)
+{
+   if (!timerRunning)
+   {
+      itemPressed = item
+      window.setTimeout(ding,1000)
+      timerRunning = true
+   }  
+}
+function released(item)
+{
+      itemPressed = null
+}
+function copyAndRoll(item)
+{
+   var d = item.data()    
+   resetAll()
+   if (Number(d.dice) > 0)
+   {
+       // dice:pool,glitch:wammies,edge:ace}    
+       pushBtn(Number(d.dice))
+       if (d.glitch > 0)
+       {      
+          gremlinsBtn()
+          pushBtn(Number(d.glitch))
+       }          
+       if (d.edge == "true")
+       {
+          $("#ace").addClass("active")
+       }
+       rollPool()
+       window.scrollTo(0,0);
+   }
+}
+var init=false
+$(document).ready(function() {
+   
+	 if (!init)
+	 {           
+	  // $("#helpPage").hide()
+	   $("#breakDownPage").hide()
+	   currentPage = $("#roller")
+      $("#roll").bind("click",rollPool)
+      $("#reset").bind("click",resetAll)
+      $("#reroll").bind("click",reRollFailures)
+      $("#b1").bind("click",function() {pushBtn(1)})
+      $("#b2").bind("click",function() {pushBtn(2)})
+      $("#b3").bind("click",function() {pushBtn(3)})
+      $("#b4").bind("click",function() {pushBtn(4)})
+      $("#b5").bind("click",function() {pushBtn(5)})
+      $("#b6").bind("click",function() {pushBtn(6)})
+      $("#b7").bind("click",function() {pushBtn(7)})
+      $("#b8").bind("click",function() {pushBtn(8)})
+      $("#b9").bind("click",function() {pushBtn(9)})
+      $("#b0").bind("click",function() {pushBtn(0)})
+      for (var i=1; i <= 16; i++)
+      { 
+         $("#p"+i.toString()).bind("mousedown",function() {pressAndHold($(this))})
+         $("#p"+i.toString()).bind("mouseup",function() {released($(this))})
+         $("#p"+i.toString()).bind("click",function() {copyAndRoll($(this))})
+      }
+      $("#breakBtn").bind("click",showResults)
+      $("#backBtn").bind("click",backUp)
+      $("#gremlinBtn").bind("click",gremlinsBtn)
+      $(document.documentElement).keypress(keyEvent);
+      $(document.documentElement).keydown(specialKeyEvent);
+      dieRolls = [0,0,0,0,0,0,0]
+      resetAll()
+      loadData()
+      init = true
+      jQuery( window ).on( "orientationchange", function( event ) { changeOrientation(event.orientation) } )      
+   }
+  })
+
+</script>  
+<style>
+   div.headerRow { border:thin solid rgb(204, 204, 204);
+                   border-radius:12px; 
+                   padding-top: 5px;
+                   padding-bottom: 5px;
+                   font-weight:bold;
+                   font-size:150%
+                 }
+   
+</style>
+  </head>
+  <body>
+   
+   
+  <div id="roller"> 
+       <div class="col-xs-3 text-center headerRow" style="background-color:rgb(0,255,255)">
+           <span id="diceLabel">Dice</span><span style="color:red" id="dicePool" value="0">0</span><span style="color:black" id="gremlinLabel" value="0"> G </span><span style="color:red" id="gremlinPool" value="0">0</span>
+       </div>
+       <div class="col-xs-6 text-center headerRow">
+          <span><span class="diceNormal">Hits</span><span class="diceGlitch" style="color:red">Glitch</span><span class="diceCriticalGlitch" style="color:red">Critcal Glitch</span></span>: <span style="color:Green" class="diceHits">12</span>
+       </div>
+       <div class="col-xs-3 text-center headerRow">
+          <span class="diceTotalLabel">Total</span><span style="color:Green" class="diceTotal">12</span>
+       </div>
+       <div class="clearfix"></div>
+             <div class="btn-group btn-group-justified">         
+               <a  class="btn btn-primary btn-lg" id="b7">7</a>
+               <a  class="btn btn-primary btn-lg" id="b8">8</a>
+               <a  class="btn btn-primary btn-lg" id="b9">9</a>
+               <a  class="btn btn-lg btn-info" id="backBtn"><span class="glyphicon glyphicon-arrow-left"></span></a>
+               <a  class="btn btn-lg btn-info" id="reset">C</a>               
+             </div>
+             <div class="btn-group btn-group-justified">         
+               <a  class="btn btn-primary btn-lg" id="b4">4</a>
+               <a  class="btn btn-primary btn-lg" id="b5">5</a>
+               <a  class="btn btn-primary btn-lg" id="b6">6</a>
+               <a  class="btn btn-success btn-lg" id="gremlinBtn">G</a>               
+               <a data-toggle="modal" href="#helpModal" class="btn btn-warning btn-lg">?</a>         
+             </div>
+      
+             <div class="btn-group btn-group-justified">         
+               <a  class="btn btn-primary btn-lg" id="b1">1</a>
+               <a  class="btn btn-primary btn-lg" id="b2">2</a>
+               <a  class="btn btn-primary btn-lg" id="b3">3</a>
+               <a  class="btn btn-primary btn-lg" id="b0">0</a>
+               <a  class="btn btn-warning btn-lg" id="breakBtn"><span class="glyphicon glyphicon-wrench"></span></a>                        
+             </div>
+            <div class="btn-group btn-group-justified">         
+	   	   	  <a class="btn btn-success btn-lg" data-toggle="button" id="ace">Edge</a>
+                 <a class="btn btn-success btn-lg" id="roll">Roll</a>    
+                 <a class="btn btn-success btn-lg" id="reroll">ReRoll</a>		   	
+	   	   </div>
+  </div>
+  <!-- Roller Page End -->
+  <hr>
+    <div id="presets"> 
+      
+             <div class="btn-group btn-group-justified">         
+               <a  class="btn btn-primary btn-lg" id="p1">Preset 1</a>
+               <a  class="btn btn-primary btn-lg" id="p2">Preset 2</a>
+               <a  class="btn btn-primary btn-lg" id="p3">Preset 3</a>
+               <a  class="btn btn-primary btn-lg" id="p4">Preset 4</a>
+             </div>
+             <div class="btn-group btn-group-justified">         
+               <a  class="btn btn-primary btn-lg" id="p5">Preset 5</a>
+               <a  class="btn btn-primary btn-lg" id="p6">Preset 6</a>
+               <a  class="btn btn-primary btn-lg" id="p7">Preset 7</a>
+               <a  class="btn btn-primary btn-lg" id="p8">Preset 8</a>
+             </div>
+             <div class="btn-group btn-group-justified">         
+               <a  class="btn btn-primary btn-lg" id="p9">Preset 9</a>
+               <a  class="btn btn-primary btn-lg" id="p10">Preset 10</a>
+               <a  class="btn btn-primary btn-lg" id="p11">Preset 11</a>
+               <a  class="btn btn-primary btn-lg" id="p12">Preset 12</a>
+             </div>
+             <div class="btn-group btn-group-justified">         
+               <a  class="btn btn-primary btn-lg" id="p13">Preset 13</a>
+               <a  class="btn btn-primary btn-lg" id="p14">Preset 14</a>
+               <a  class="btn btn-primary btn-lg" id="p15">Preset 15</a>
+               <a  class="btn btn-primary btn-lg" id="p16">Preset 16</a>
+             </div>
+  </div>
+  <!-- Presets End -->
+  <div class="modal fade" id="breakdownModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">      
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+             <h4 class="modal-title">Die Roll Break Down</h4>
+          </div>
+	       <div class="modal-body">
+	          <h4>The last roll generated...</h4>
+             <div class="row">
+           	      <div class="col-xs-2"><h2 style="color:red" align=center>1's</h2></div>
+                   <div class="col-xs-2"><h2 align=center>2's</h2></div>
+                   <div class="col-xs-2"><h2 align=center>3's</h2></div>
+                   <div class="col-xs-2"><h2 align=center>4's</h2></div>
+                   <div class="col-xs-2"><h2 style="color:Green" align=center>5's</h2></div>
+                   <div class="col-xs-2"><h2 style="color:Green" align=center>6's</h2></div>
+             </div>
+             <div class="row">
+                   <div class="col-xs-2"><h2 align=center><span style="color:red" id="r1"></span></h2></div>
+                   <div class="col-xs-2"><h2 align=center><span id="r2"></span></h2></div>
+                   <div class="col-xs-2"><h2 align=center><span id="r3"></span></h2></div>
+                   <div class="col-xs-2"><h2 align=center><span id="r4"></span></h2></div>
+                   <div class="col-xs-2"><h2 align=center><span style="color:Green" id="r5"></span></h2></div>
+                   <div class="col-xs-2"><h2 align=center><span style="color:Green" id="r6"></span></h2></div>
+             </div>
+             <div class="row">
+               <div class="">There were <span id="rr"></span> dice rerolled</div> 
+             </div>	      
+          </div>
+          <div class="modal-footer">
+             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+             <h4 align=center>Copyright 2013 by Michael Zebrowski</h4>
+          </div>
+        </div><!-- /.modal-content -->
+     </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+
+  <!-- breakDownPage End -->  
+  <!-- Help Page -->
+  <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">      
+      <div class="modal-dialog">
+        <div class="modal-content">
+           <div class="modal-header">
+             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+             <h4 class="modal-title">SR5 Mobile Dice Roller Help</h4>
+           </div>
+           <div class="modal-body">
+             	<h4>About</h4>
+	           <p>This is a small dice roller app for the Role Playing Game <a href="http://www.shadowruntabletop.com">Shadowrun 5th Edition</a>.  If you don't know what the terms below mean, then go buy the game, it is awesome.
+	           <h4>Features</h4>
+	           <ul>
+	           	<li>Supports from 1 to 999 dice.
+	           	<li>When the Edge button is turned on, 6's are rerolled
+	           	<li>ReRoll button rerolls all failures
+	           	<li>The G button allows users to set the Gremlin Level.  Example 4 G 2, means roll 4 dice with a Gremlin Level of 2.
+	           	<li>Critical Glitchs and Glitchs are automatically calculated.				
+	           	<li>The number of Hits generated and the sum of all the dice is displayed.
+	           	<li>The color of the "Hits" and "Total" Changes to indicate that a roll occured.
+	           </ul>
+	           <h4>Special Buttons</h4>
+	           <p>As this is designed to use with phones, several buttons only have 1 character on them.
+	           <dl>
+	           	<dt><span class="glyphicon glyphicon-arrow-left"></span>
+	           		<dd>Back Button - Backspaces the dice entered.
+	           	<dt>C
+	           		<dd>Clear Button - Resets everything
+	           	<dt><span class="glyphicon glyphicon-wrench"></span>
+	           		<dd>Information Button - Brings up the break down of the last roll
+	           	<dt>?
+	           		<dd>Help Button - Bring up this page.				
+	           </dl>	
+	           <p>Thanks to <a href="http://glyphicons.com">Glyphicons</a> for allowing their use in Bootstrap!</p>
+	           <h4>Presets</h4>
+	           <p>To set one of the presets...
+	            <ol>
+	               <li>Type in the value as normal
+	               <li>Press and hold the preset button that you wish to set for 1 second
+	               <li>When value is saved, the button will update.
+	             </ol>
+	             <p>If your browser supports it, values will be saved when the browser is closed.     
+	           <h4>License</h4>
+	           <p>
+                Copyright 2013 Michael Zebrowski<br>
+                http://www.prosperity-station.com
+              </p>
+              <p>
+                 Permission is hereby granted, free of charge, to any person obtaining
+                 a copy of this software and associated documentation files (the
+                 "Software"), to deal in the Software without restriction, including
+                 without limitation the rights to use, copy, modify, merge, publish,
+                 distribute, sublicense, and/or sell copies of the Software, and to
+                 permit persons to whom the Software is furnished to do so, subject to
+                 the following conditions:
+              </p><p>
+                 The above copyright notice and this permission notice shall be
+                 included in all copies or substantial portions of the Software.
+              </p><p>
+                 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+                 EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+                 MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+                 NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+                 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+                 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+                 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.			
+              </p>
+           
+           </div>
+           <div class="modal-footer">
+             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+           </div>
+        </div><!-- /.modal-content -->
+     </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+  
+  
+  </body>
+</html>
+                                                
