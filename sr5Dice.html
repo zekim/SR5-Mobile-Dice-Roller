@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
   <head>
@@ -132,6 +131,8 @@
 	    	     $(".diceNormal").show()
 	    	  }
 	    	  rotateHint()
+	    	  rerollCount = 0
+   	          $("#reRollCount").hide(); 
 	    	  rolled = true
 	    }
 	    function reRollFailures()
@@ -152,6 +153,8 @@
 	    	  } 
 	    	  // show Hits	    	  
 	    	  $(".diceHits").html(hits)
+	    	  rerollCount++
+	         $("#reRollCount").show().html(rerollCount);
 	    	  rotateHint()
 	    }
 	    var hintIndex = 0;
@@ -166,6 +169,8 @@
      function resetAll()
      {
         btnPushed()
+        rerollCount = 0
+	    $("#reRollCount").hide(); 
      	  $(".diceHits").html(0)
 	     $(".diceTotal").html(0)
 	     $(".diceGlitch").hide()
@@ -456,13 +461,14 @@ function copyAndRoll(item)
    }
 }
 var init=false
+var rerollCount = 0;
 $(document).ready(function() {
    
 	 if (!init)
 	 {           
-	  // $("#helpPage").hide()
-	   $("#breakDownPage").hide()
+	  	   
 	   currentPage = $("#roller")
+	  
       $("#roll").bind("click",rollPool)
       $("#reset").bind("click",resetAll)
       $("#reroll").bind("click",reRollFailures)
@@ -546,7 +552,7 @@ $(document).ready(function() {
             <div class="btn-group btn-group-justified">         
 	   	   	  <a class="btn btn-success btn-lg" data-toggle="button" id="ace">Edge</a>
                  <a class="btn btn-success btn-lg" id="roll">Roll</a>    
-                 <a class="btn btn-success btn-lg" id="reroll">ReRoll</a>		   	
+                 <a class="btn btn-success btn-lg" id="reroll">ReRoll<span class="badge" id="reRollCount">0</span></a>		   	
 	   	   </div>
   </div>
   <!-- Roller Page End -->
