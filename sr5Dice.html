@@ -457,7 +457,6 @@ function copyAndRoll(item)
           $("#ace").addClass("active")
        }
        rollPool()
-       window.scrollTo(0,0);
    }
 }
 var init=false
@@ -510,13 +509,11 @@ $(document).ready(function() {
                    font-weight:bold;
                    font-size:150%
                  }
-   
+   body { padding-top: 50px; }
 </style>
   </head>
   <body>
-   
-   
-  <div id="roller"> 
+  	<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
        <div class="col-xs-3 text-center headerRow" style="background-color:rgb(0,255,255)">
            <span id="diceLabel">Dice</span><span style="color:red" id="dicePool" value="0">0</span><span style="color:black" id="gremlinLabel" value="0"> G </span><span style="color:red" id="gremlinPool" value="0">0</span>
        </div>
@@ -526,7 +523,9 @@ $(document).ready(function() {
        <div class="col-xs-3 text-center headerRow">
           <span class="diceTotalLabel">Total</span><span style="color:Green" class="diceTotal">12</span>
        </div>
-       <div class="clearfix"></div>
+     </nav>
+      <div class="clearfix"></div>
+      <div id="roller"> 
              <div class="btn-group btn-group-justified">         
                <a  class="btn btn-primary btn-lg" id="b7">7</a>
                <a  class="btn btn-primary btn-lg" id="b8">8</a>
